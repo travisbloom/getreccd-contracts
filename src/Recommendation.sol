@@ -8,6 +8,8 @@ import {Base64} from "@openzeppelin/contracts/utils/Base64.sol";
 contract Recommendation is ERC721 {
     uint256 counter = 1;
 
+    event Recommended(uint256 tokenId, NFTData data);
+
     mapping(uint256 => NFTData) public nftData;
 
     struct NFTData {
@@ -27,7 +29,9 @@ contract Recommendation is ERC721 {
         string memory receiverName,
         string memory description
     ) public returns (uint256) {
-        require(bytes(description).length <= 280, "Description too long");
+        require(bytes(description).length <= 280, "too long");
+        require(bytes(senderName).length <= 100, "too long");
+        require(bytes(receiverName).length <= 100, "too long");
 
         uint256 tokenId = counter;
         counter++;
@@ -35,11 +39,17 @@ contract Recommendation is ERC721 {
         nftData[tokenId] = NFTData(msg.sender, receiverAddress, senderName, receiverName, description);
 
         _mint(receiverAddress, tokenId);
+
+        emit Recommended(tokenId, nftData[tokenId]);
         return tokenId;
     }
 
     function getNFTImage(uint256 tokenId) public pure returns (string memory) {
         return string.concat("https://www.getreccd.com/nft/recommendation/v1/", Strings.toString(tokenId));
+    }
+
+    function getRecommendationData(uint256 tokenId) public view returns (NFTData memory) {
+        return nftData[tokenId];
     }
 
     function tokenURI(uint256 tokenId) public view override returns (string memory) {
